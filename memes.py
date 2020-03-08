@@ -1,5 +1,5 @@
 # Memes
-import random
+from random import choice
 tweets = [
 	"https://twitter.com/TheJepsquad/status/1049833765223182336",
 	"https://twitter.com/TheJepsquad/status/1052393566608285696",
@@ -97,16 +97,16 @@ other = [
 
 def getRandomMeme():
 	memes = tweets + clips + images + other
-	return random.choice(memes)
+	return choice(memes)
 	
 def getRandomTweet():
-	return random.choice(tweets)
+	return choice(tweets)
 	
 def getRandomImage():
-	return random.choice(images)
+	return choice(images)
 	
 def getRandomClip():
-	return random.choice(clips)
+	return choice(clips)
 	
 def getRandomSomething():
-	return random.choice(other)
+	return choice(other)
