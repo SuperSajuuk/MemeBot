@@ -7,36 +7,25 @@ allowed_channels = [351834237818634242,360965133834649602,381200080796909568,417
 # Functions
 async def mod_log(ctx):
 	if ctx.guild is None:
-		log_post = ":computer: {} ({}) used command in my DM's: `{}`".format(str(ctx.author), ctx.author.id, ctx.message.clean_content)
+		log_post = f":computer: {str(ctx.author)} ({ctx.author.id}) used command in my DM's: `{ctx.message.clean_content}`"
 	else:
-		log_post = ":computer: {} ({}) used command in *{}*: `{}`".format(str(ctx.author), ctx.author.id, ctx.channel.name, ctx.message.clean_content)
+		log_post = f":computer: {str(ctx.author)} ({ctx.author.id}) used command in *{ctx.channel.name}*: `{ctx.message.clean_content}`"
 	ch = ctx.guild.get_channel(438100727198515201)
-	if ch is not None:
+	if ch:
 		await ch.send(log_post)
-	return
 	
 async def has_perm(ctx):
 	if ctx.channel.category_id == 360949225229647872:
 		return True
 	if ctx.channel.id not in allowed_channels:
 		return False
-	for role in ctx.author.roles:
-		if role.id in moderator_roles:
-			return True
-		if role.id in allowed_roles:
-			return True
-	return False
+	return any(role.id in (moderator_roles + allowed_roles) for role in ctx.author.roles)
 
 async def is_mod(ctx):
-	for role in ctx.author.roles:
-		if role.id in moderator_roles:
-			return True
-	return False
+	return any(role.id in moderator_roles for role in ctx.author.roles)
 
 async def is_dm_only(ctx):
-	if ctx.guild is None:
-		return True
-	return False
+	return ctx.guild is None
 	
 # Public Commands
 @commands.command()
@@ -45,7 +34,6 @@ async def is_dm_only(ctx):
 async def meme(ctx):
 	await ctx.send(memes.getRandomMeme())
 	await mod_log(ctx)
-	return
 
 @commands.command()
 @commands.check(has_perm)
@@ -53,7 +41,6 @@ async def meme(ctx):
 async def tweet(ctx):
 	await ctx.send(memes.getRandomTweet())
 	await mod_log(ctx)
-	return
 	
 @commands.command()
 @commands.check(has_perm)
@@ -61,7 +48,6 @@ async def tweet(ctx):
 async def image(ctx):
 	await ctx.send(memes.getRandomImage())
 	await mod_log(ctx)
-	return
 	
 @commands.command()
 @commands.check(has_perm)
@@ -69,7 +55,6 @@ async def image(ctx):
 async def clip(ctx):
 	await ctx.send(memes.getRandomClip())
 	await mod_log(ctx)
-	return
 
 @commands.command()
 @commands.check(has_perm)
@@ -77,7 +62,6 @@ async def clip(ctx):
 async def other(ctx):
 	await ctx.send(memes.getRandomSomething())
 	await mod_log(ctx)
-	return
 	
 @commands.command()
 @commands.check(has_perm)
@@ -85,7 +69,6 @@ async def other(ctx):
 async def therace(ctx):
 	await ctx.send("THE RACE: https://clips.twitch.tv/GeniusEnthusiasticManateeKappaPride")
 	await mod_log(ctx)
-	return
 	
 @commands.command()
 @commands.check(has_perm)
@@ -93,7 +76,6 @@ async def therace(ctx):
 async def oliver(ctx):
 	await ctx.send("Josh gets attacked by his cat, Oliver: https://clips.twitch.tv/PrettiestPowerfulCakeKappa")
 	await mod_log(ctx)
-	return
 
 # Error Handler for
 # public commands
@@ -107,18 +89,17 @@ async def public_error(ctx, error):
 	if isinstance(error, commands.CommandNotFound):
 		return
 	elif isinstance(error, commands.CommandOnCooldown):
-		await ctx.send(":warning: You're on a cooldown right now! You have to wait {} seconds before trying again.".format(round(error.retry_after, 1)))
+		await ctx.send(f":warning: You're on a cooldown right now! You have to wait {round(error.retry_after, 1)} seconds before trying again.")
 	elif isinstance(error, commands.CheckFailure):
 		await ctx.send(":lock: You lack permission to be able to use this command!", delete_after=5)
 		await asyncio.sleep(3)
 		await ctx.message.delete()
 	elif isinstance(error, commands.MissingRequiredArgument):
-		await ctx.send(":question: You're missing a required argument in this command! `{}`".format(error), delete_after=10)
+		await ctx.send(f":question: You're missing a required argument in this command! `{error}`", delete_after=10)
 		await asyncio.sleep(5)
 		await ctx.message.delete()
 	elif isinstance(error, commands.CommandInvokeError):
 		await ctx.send(":warning: Sorry, something went wrong invoking this command, try again later.")
-	return
 
 # Restricted commands
 @commands.command()
@@ -132,9 +113,8 @@ async def stop(ctx):
 async def thanos(ctx):
 	total = len(ctx.guild.members)
 	half = total / 2
-	await ctx.send(":ok_hand: banhammered {} random members :hammer: :wave: :wave:".format(half))
+	await ctx.send(f":ok_hand: banhammered {half} random members :hammer: :wave: :wave:")
 	await mod_log(ctx)
-	return
 
 @commands.command()
 @commands.check(is_mod)
@@ -146,7 +126,14 @@ async def count(ctx, *, cmd: typing.Optional[str] = None):
 		other_ct = len(memes.other)
 		clip_ct = len(memes.clips)
 		totals = image_ct + tweet_ct + other_ct + clip_ct
-		out = "Here are the stats: \n\n- {} images\n- {} tweets\n- {} clips\n- {} other random memes.\n\nThere are a total of {} links that can be selected from the commands.".format(image_ct, tweet_ct, clip_ct, totals)
+		out = f"""Here are the stats: 
+		
+		- {image_ct} images
+		- {tweet_ct} tweets
+		- {clip_ct} clips
+		- {other_ct} other random memes.
+		
+		There are a total of {totals} links that can be selected from the commands."""
 		await ctx.send(out)
 		await mod_log(ctx)
 	else:
@@ -171,7 +158,6 @@ async def mod_cmd_error(ctx, error):
 	elif isinstance(error, commands.CommandInvokeError):
 		await ctx.send(":warning: Sorry, something went wrong invoking this command, try again later.")
 		print(error.original)
-	return
 	
 @commands.command()
 @commands.is_owner()
